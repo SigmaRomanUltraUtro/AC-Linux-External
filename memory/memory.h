@@ -38,7 +38,7 @@ public:
         struct iovec local_iov[1];
         struct iovec remote_iov[1];
 
-        local_iov[0].iov_base = &value;
+        local_iov[0].iov_base = const_cast<T*>(&value);
         local_iov[0].iov_len = sizeof(value);
 
         remote_iov[0].iov_base = (void*)addr;

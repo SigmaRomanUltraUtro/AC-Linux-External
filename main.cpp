@@ -1,5 +1,6 @@
 #include <iostream>
-#include "processmanager.h"
+#include "features/processmanager.h"
+#include "sdk/localPlayer.h"
 #include <vector>
 using namespace std;
 int main()
@@ -7,7 +8,6 @@ int main()
     std::string nameProcess = "linux_64_client";
     ProcessFinder find;
     ModuleParser modulePars;
-
 
     auto pid_opt = find.findProcessIdByName(nameProcess);
     if (!pid_opt)
@@ -26,12 +26,7 @@ int main()
     }
 
     std::cout<<"Pid: "<<*pid_opt<<std::endl;
-    for(const auto& module : *modules_opt)
-    {
-        std::cout<<"path: "<<module.path<<std::endl;
-        std::cout<<"permissions: "<<module.permisions<<std::endl;
-        std::cout<<"======================"<<std::endl;
-    }
+
     std::string nameProcessForPath;
     std::cout<<"Enter nameProcess for path: "<<std::endl;
     std::cin>>nameProcessForPath;
@@ -47,5 +42,18 @@ int main()
         return 0;
     }
     std::cout<<"BaseAddr"<<std::hex << *baseAddr_opt << std::endl;
+
+    LocalPlayer player(pid,*baseAddr_opt);
+
+    int hp = player.getHealth();
+
+    std::cout<<"Hp: "<<hp<<std::endl;
+
+    int setHp = 0;
+    std::cout<<"Enter to set hp"<<std::endl;
+    std::cin>>setHp;
+
+    player.setHealth(setHp);
+
     return 0;
 }

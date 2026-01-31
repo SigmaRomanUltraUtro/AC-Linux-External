@@ -8,12 +8,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(TestExternalAssaultCube main.cpp
 
     Offsets.h
-    memory.h
-    math.h math.cpp
-    render.h render.cpp
-    processmanager.h processmanager.cpp
-
-
+    memory/memory.h
+    sdk/math.h
+    sdk/math.cpp
+    render/render.h
+    render/render.cpp
+    features//processmanager.h
+    features/processmanager.cpp
+    sdk/localPlayer.h
 )
 
 include(GNUInstallDirs)
