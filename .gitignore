@@ -3,3 +3,4 @@ build/
 TestExternalAssaultCube
 *.o
 CMakeLists.txt.user
+build6/
