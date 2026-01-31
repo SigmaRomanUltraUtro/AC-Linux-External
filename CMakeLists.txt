@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(TestExternalAssaultCube main.cpp
 
     Offsets.h
-    memory.h memory.cpp
+    memory.h
     math.h math.cpp
     render.h render.cpp
     processmanager.h processmanager.cpp
