@@ -1,0 +1,5 @@
+build/
+.qtc_clangd/
+TestExternalAssaultCube
+*.o
+CMakeLists.txt.user
