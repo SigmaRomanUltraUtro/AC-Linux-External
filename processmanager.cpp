@@ -80,7 +80,7 @@ std::optional<pid_t> ProcessFinder::findProcessIdByName(const std::string& name)
 }
 
 
-std::vector <std::string> ProcessSource::readModuleProcess(pid_t pid) const///
+std::vector <std::string> ProcessSource::readModuleProcess(pid_t pid) const
 {
     std::vector<std::string> modulesProcess;
 
@@ -102,7 +102,7 @@ std::vector <std::string> ProcessSource::readModuleProcess(pid_t pid) const///
 
 ModuleParser::ModuleParser(ProcessSource source) : procSource(std::move(source)){}
 
-std::optional <std::vector<MemoryMap>> ModuleParser::findModuleProcess(pid_t pid) const//////
+std::optional <std::vector<MemoryMap>> ModuleParser::findModuleProcess(pid_t pid) const
 {
     if(pid <= 0) return std::nullopt;
 
@@ -125,35 +125,29 @@ std::optional<MemoryMap> ModuleParser::parseMemoryMapEntry(const std::string& li
 {
     // 00400000-00452000 r-xp 00000000 08:02 173521 /usr/bin/dbus-daemon
 
-    auto dashPos = line.find('-');
-    auto firstSpace = line.find(' ', dashPos + 1);
-    auto secondSpace = line.find(' ', firstSpace + 1);
+    std::stringstream string(line);
+    std::string addr,permissions,offset,device,inode,path;
 
-    if (dashPos == std::string::npos ||
-        firstSpace == std::string::npos ||
-        secondSpace == std::string::npos)
-        return std::nullopt;
+    if(!(string >> addr >> permissions >> offset >> device >> inode >> path))  return std::nullopt;
 
-    MemoryMap map{};
-    try {
+    std::getline(string >> std::ws, path); //maybe dash
 
-    // start
-    map.startAddr = static_cast<uintptr_t>(std::stoull(line.substr(0, dashPos), nullptr, 16));
+    MemoryMap map {};
 
-    // end
-    map.endAddr = static_cast<uintptr_t>(std::stoull(line.substr(dashPos + 1, firstSpace - dashPos - 1), nullptr, 16));
+    map.permisions = permissions;
+    map.path = path;
 
-    // permissions
-    map.permisions = line.substr(firstSpace + 1, secondSpace - firstSpace - 1);
 
-    //path
-    auto pathPos = line.find('/', secondSpace);//maybe path no
-    if (pathPos != std::string::npos)map.path = line.substr(pathPos);
-    }
-    catch(...)
+    size_t dash = addr.find('-'); // 00400000-00452000
+    if(dash == std::string::npos) return std::nullopt;
+    try
     {
-        return std::nullopt;
+        //00400000
+        map.startAddr = static_cast <uintptr_t> (std::stoull(addr.substr(0,dash), nullptr ,16));
+
+        map.endAddr = static_cast <uintptr_t> (std::stoull(addr.substr(dash + 1), nullptr ,16));
     }
+    catch(...){ return std::nullopt; }
 
     return map;
 }
