@@ -4,52 +4,91 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <type_traits>
-class memory
+#include <string>
+#include <type_traits>
+#include "map"
+#include <optional>
+#include <type_traits>
+#include <mutex>
+
+
+template <typename T>
+concept TrivialyCopyable = std::is_trivially_copyable_v <T>;
+
+
+
+class Memory
 {
+private:
+
+    std::map<std::string, uintptr_t> moduleCache {};
+
+    std::optional<pid_t> pid_opt;
+
+    mutable std::mutex cacheMutex;
+
+    Memory() = default;
+
 public:
-    explicit memory(pid_t pid) : pid(pid) {}
 
-    template <typename T>
-    T readProcess(const uintptr_t addr) const
+    static Memory& get()
     {
-        static_assert(std::is_trivially_copyable<T>::value, "the value must be of type int, float, double");
+        static Memory instance;
+        return instance;
+    }
 
-        struct iovec local_iov[1];
-        struct iovec remote_iov[1];
+    bool attach(const std::string& nameProcess);
+
+    std::optional <pid_t> getPid() const { return *pid_opt; }
+
+    std::optional <uintptr_t> getBaseAddr(const std::string& moduleName);
+
+    template <TrivialyCopyable T>
+    std::optional <T> readProcess(const uintptr_t addr) const
+    {
 
         T buffer {};
 
-        local_iov[0].iov_base = &buffer;
-        local_iov[0].iov_len = sizeof(buffer);
+        iovec local
+        {
+            .iov_base = &buffer,
+            .iov_len = sizeof(T)
+        };
 
-        remote_iov[0].iov_base = (void*)addr;
-        remote_iov[0].iov_len = sizeof(buffer);
+        iovec remote
+        {
+            .iov_base = reinterpret_cast <void*> (addr),
+            .iov_len = sizeof(T)
+        };
 
-        process_vm_readv(pid, local_iov, 1, remote_iov, 1, 0);
+        ssize_t read = process_vm_readv(*pid_opt, &local, 1, &remote, 1, 0);
+
+        if(read != sizeof(T)) return std::nullopt;
 
         return buffer;
     }
 
-    template <typename T>
+
+    template <TrivialyCopyable T>
     bool writeProcess(const uintptr_t addr, const T& value) const
     {
-        static_assert(std::is_trivially_copyable<T>::value, "the value must be of type int, float, double");
 
-        struct iovec local_iov[1];
-        struct iovec remote_iov[1];
+        struct iovec local_iov
+        {
+            .iov_base = const_cast <void*> (static_cast<const void*>(&value)),
+            .iov_len = sizeof(T)
+        };
+        struct iovec remote_iov
+        {
+            .iov_base = reinterpret_cast <void*> (addr),
+            .iov_len = sizeof(T)
+        };
 
-        local_iov[0].iov_base = const_cast<T*>(&value);
-        local_iov[0].iov_len = sizeof(value);
-
-        remote_iov[0].iov_base = (void*)addr;
-        remote_iov[0].iov_len = sizeof(value);
-
-        return process_vm_writev(pid, local_iov, 1, remote_iov, 1, 0) == sizeof(value);
+        return process_vm_writev(*pid_opt, &local_iov, 1, &remote_iov, 1, 0) == sizeof(value);
     }
 
-    private:
 
-    pid_t pid;
+
 };
 
 #endif // MEMORY_H

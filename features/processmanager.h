@@ -56,7 +56,7 @@ public:
 
     std::optional <std::vector<MemoryMap>> findModuleProcess(pid_t pid) const;
 
-    std::optional <uintptr_t> findModuleBase(pid_t pidProcess,const std::string& nameProcess,const std::string& permissions) const;
+    std::optional <std::vector<uintptr_t>> findModuleBase(pid_t pidProcess,const std::string& nameProcess,const std::string& permissions) const;
 
 private:
     std::optional<MemoryMap> parseMemoryMapEntry(const std::string& line) const;

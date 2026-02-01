@@ -16,6 +16,8 @@ add_executable(TestExternalAssaultCube main.cpp
     features//processmanager.h
     features/processmanager.cpp
     sdk/localPlayer.h
+    memory/memory.cpp
+    sdk/LocalPlayer.cpp
 )
 
 include(GNUInstallDirs)

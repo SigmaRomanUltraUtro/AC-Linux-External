@@ -153,8 +153,9 @@ std::optional<MemoryMap> ModuleParser::parseMemoryMapEntry(const std::string& li
 }
 
 
-std::optional <uintptr_t> ModuleParser::findModuleBase(pid_t pidProcess,const std::string& nameProcess,const std::string& permissions) const
+std::optional <std::vector<uintptr_t>> ModuleParser::findModuleBase(pid_t pidProcess,const std::string& nameProcess,const std::string& permissions) const
 {
+    std::vector<uintptr_t> baseModules;
     auto region = findModuleProcess(pidProcess);
     if(!region) return std::nullopt;
     for(const auto& data : *region)
@@ -162,9 +163,12 @@ std::optional <uintptr_t> ModuleParser::findModuleBase(pid_t pidProcess,const st
         if(data.path.find(nameProcess) != std::string::npos &&
          data.permisions.find(permissions) != std::string::npos)
         {
-            return data.startAddr;
+            baseModules.push_back(data.startAddr);
         }
     }
-    return std::nullopt;
+
+    if(baseModules.empty()) return std::nullopt;
+
+    return baseModules;
 }
 
