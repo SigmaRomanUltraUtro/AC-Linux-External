@@ -18,6 +18,7 @@ add_executable(TestExternalAssaultCube main.cpp
     sdk/localPlayer.h
     memory/memory.cpp
     sdk/LocalPlayer.cpp
+    sdk/weapon.h sdk/weapon.cpp
 )
 
 include(GNUInstallDirs)

@@ -3,55 +3,75 @@
 #include "../memory/memory.h"
 #include "../Offsets.h"
 
-std::optional <uintptr_t> LocalPlayer::getLocalPlayerPtr() const
+uintptr_t LocalPlayer::getPlayerAddr() const  { return localPlayerAddr; }
+
+bool LocalPlayer::update()
 {
     auto& mem = Memory::get();
 
-    auto baseAddr = mem.getBaseAddr("linux_64_client");
-    if(!baseAddr) return std::nullopt;
+    auto base = mem.getBaseAddr("linux_64_client");
 
-    return mem.readProcess <uintptr_t> (*baseAddr + Offsets::LocalPlayer);
+    if(base)
+    {
+        auto pPlayer = mem.readProcess <uintptr_t> (*base + offsets::dLocalPlayer);
+
+        if(pPlayer && *pPlayer != 0)
+        {
+            localPlayerAddr = *pPlayer;
+            return true;
+        }
+    }
+    localPlayerAddr = 0;
+    return false;
+}
+
+std::optional <uintptr_t> LocalPlayer::getWeaponPtr() const
+{
+    if(localPlayerAddr == 0) return std::nullopt;
+
+    auto& mem = Memory::get();
+
+    return mem.readProcess <uintptr_t> (localPlayerAddr + offsets::mPlayer::pCurrentWeapon);
 }
 
 std::optional <int> LocalPlayer::getHealth() const
 {
-    auto localPlayerPtr_opt = getLocalPlayerPtr();
-
-    if(!localPlayerPtr_opt) return std::nullopt;
+    if(localPlayerAddr == 0) return std::nullopt;
 
     auto& mem = Memory::get();
 
-    return mem.readProcess <int> (*localPlayerPtr_opt + Offsets::PlayerStats::healhOffset);
+    return mem.readProcess <int> (localPlayerAddr + offsets::mPlayer::iHealth);
 }
 
-std::optional <int> LocalPlayer::getAmmo() const
-{
-    auto localPlayerPtr_opt = getLocalPlayerPtr();
-
-    if(!localPlayerPtr_opt) return std::nullopt;
-
-    auto& mem = Memory::get();
-
-    return mem.readProcess <int> (*localPlayerPtr_opt + Offsets::PlayerStats::ammoOffset);
-}
-
-bool LocalPlayer::setAmmo(const int& value) const
-{
-    auto localPlayerPtr_opt = getLocalPlayerPtr();
-
-    if(!localPlayerPtr_opt) return false;
-
-    auto& mem = Memory::get();
-
-    return mem.writeProcess <int> (*localPlayerPtr_opt + Offsets::PlayerStats::ammoOffset,value);
-}
 bool LocalPlayer::setHealth(const int& value) const
 {
-    auto localPlayerPtr_opt = getLocalPlayerPtr();
-
-    if(!localPlayerPtr_opt) return false;
+    if(localPlayerAddr == 0) return false;
 
     auto& mem = Memory::get();
 
-    return mem.writeProcess <int> (*localPlayerPtr_opt + Offsets::PlayerStats::healhOffset,value);
+    return mem.writeProcess <int> (localPlayerAddr + offsets::mPlayer::iHealth, value);
 }
+
+
+bool LocalPlayer::setArrmor(const int& value) const
+{
+    if(localPlayerAddr == 0) return false;
+
+    auto& mem = Memory::get();
+
+    return mem.writeProcess <int> (localPlayerAddr + offsets::mPlayer::iArmor, value);
+}
+
+std::optional <int> LocalPlayer::getArrmor() const
+{
+    if(localPlayerAddr == 0) return std::nullopt;
+
+    auto& mem = Memory::get();
+
+    return mem.readProcess <int> (localPlayerAddr + offsets::mPlayer::iArmor);
+}
+
+
+
+
+

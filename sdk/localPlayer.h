@@ -1,9 +1,10 @@
 #ifndef LOCALPLAYER_H
 #define LOCALPLAYER_H
+
 #include <sys/types.h>
-#include "../Offsets.h"
-#include "../memory/memory.h"
+#include <optional>
 #include <cstdint>
+
 class LocalPlayer
 {
 public:
@@ -11,12 +12,18 @@ public:
 
     bool setHealth(const int& value) const;
 
-    std::optional <int> getAmmo() const;
+    std::optional <int> getArrmor() const;
 
-    bool setAmmo(const int& value) const;
+    bool setArrmor(const int& value) const;
 
-private:
-    std::optional <uintptr_t> getLocalPlayerPtr() const;
+    std::optional <uintptr_t> getPlayerPtr() const;
+
+    bool update();
+
+    uintptr_t getPlayerAddr() const;
+
+    std::optional <uintptr_t> getWeaponPtr() const;
+
 private:
 
     uintptr_t localPlayerAddr;
