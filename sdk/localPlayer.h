@@ -4,10 +4,15 @@
 #include <sys/types.h>
 #include <optional>
 #include <cstdint>
+#include "../memory/memory.h"
 
 class LocalPlayer
 {
 public:
+    LocalPlayer();
+
+    bool update();
+
     std::optional <int> getHealth() const;
 
     bool setHealth(const int& value) const;
@@ -16,16 +21,11 @@ public:
 
     bool setArrmor(const int& value) const;
 
-    std::optional <uintptr_t> getPlayerPtr() const;
-
-    bool update();
-
-    uintptr_t getPlayerAddr() const;
-
     std::optional <uintptr_t> getWeaponPtr() const;
 
 private:
 
+    Memory& mem;
     uintptr_t localPlayerAddr;
 };
 

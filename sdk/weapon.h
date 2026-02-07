@@ -2,6 +2,7 @@
 #define WEAPON_H
 #include <cstdint>
 #include <optional>
+#include "../memory/memory.h"
 
 struct RecoilInfo
 {
@@ -14,7 +15,13 @@ class Weapon
 {
 private:
 
+    Memory& mem;
     uintptr_t weaponPtr;
+
+private:
+    std::optional <uintptr_t> readDataAmmoSetting() const;
+
+    std::optional <uintptr_t> readDataFireSetting() const;
 
 public:
     Weapon(const uintptr_t weaponPtr);

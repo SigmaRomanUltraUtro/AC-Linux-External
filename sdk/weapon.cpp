@@ -3,113 +3,126 @@
 #include <cstdint>
 #include "../Offsets.h"
 
-Weapon::Weapon(const uintptr_t weaponPtr) : weaponPtr(weaponPtr) {}
+Weapon::Weapon(const uintptr_t weaponPtr) : weaponPtr(weaponPtr), mem(Memory::get()) {}
+
+std::optional <uintptr_t> Weapon::readDataFireSetting() const
+{
+    if(weaponPtr == 0) return std::nullopt;
+
+    return mem.readProcess<uintptr_t> (weaponPtr + offsets::Weapon::pFireSettings);
+}
+
+std::optional <uintptr_t> Weapon::readDataAmmoSetting() const
+{
+    if(weaponPtr == 0) return std::nullopt;
+
+    return mem.readProcess<uintptr_t> (weaponPtr + offsets::Weapon::pAmmoData);
+}
 
 std::optional <int> Weapon::getWeaponId() const
 {
-    auto& mem = Memory::get();
+    if(weaponPtr == 0) return std::nullopt;
 
     return mem.readProcess <int> (weaponPtr + offsets::Weapon::iWeaponID);
 }
 
 bool Weapon::setWeaponId(const int& weaponId)
 {
-    auto& mem = Memory::get();
+    if(weaponId < 0 || weaponPtr == 0) return false;
 
     return mem.writeProcess <int> (weaponPtr + offsets::Weapon::iWeaponID, weaponId);
 }
 
 std::optional <int> Weapon::getAmmoWeapon() const
 {
-    auto& mem = Memory::get();
+    if(auto ammoSetting = readDataAmmoSetting())
+    {
+        return mem.readProcess <int> (*ammoSetting + offsets::AmmoData::iAmmo);
+    }
 
-    auto dataAmmo = mem.readProcess <uintptr_t> (weaponPtr + offsets::Weapon::pAmmoData);
-
-    if(!dataAmmo) return std::nullopt;
-
-    return mem.readProcess <int> (*dataAmmo + offsets::AmmoData::iAmmo);
+    return std::nullopt;
 }
 
 bool Weapon::setAmmoWeapon(const int& ammoWeapon)
 {
-    auto& mem = Memory::get();
+    if(ammoWeapon <= 0) return false;
 
-    auto dataAmmo = mem.readProcess <uintptr_t> (weaponPtr + offsets::Weapon::pAmmoData);
+    if(auto ammoSetting = readDataAmmoSetting())
+    {
+        return mem.writeProcess <int> (*ammoSetting + offsets::AmmoData::iAmmo, ammoWeapon);
+    }
 
-    if(!dataAmmo) return false;
-
-    return mem.writeProcess <int> (*dataAmmo + offsets::AmmoData::iAmmo, ammoWeapon);
+    return false;
 }
 
 
 std::optional <int16_t> Weapon::getKnockBack() const
 {
-    auto& mem = Memory::get();
+    if(auto fireSetting = readDataFireSetting())
+    {
+        return mem.readProcess <uint16_t> (*fireSetting + offsets::FireSettings::sKnockBack);
+    }
 
-    auto fireSetting = mem.readProcess <uintptr_t> (weaponPtr + offsets::Weapon::pFireSettings);
-
-    if(!fireSetting) return std::nullopt;
-
-    return mem.readProcess <uint16_t> (*fireSetting + offsets::FireSettings::sKnockBack);
+    return std::nullopt;
 }
 
 bool Weapon::setKnockBack(const int16_t& value)
 {
-    auto& mem = Memory::get();
+    if(value < 0 || value > 100) return false;
 
-    auto fireSetting = mem.readProcess <uintptr_t> (weaponPtr + offsets::Weapon::pFireSettings);
+    if(auto fireSetting = readDataFireSetting())
+    {
+        return mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sKnockBack, value);
+    }
 
-    if(!fireSetting) return false;
-
-    return mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sKnockBack, value);
+    return false;
 }
 
 std::optional <int16_t> Weapon::getSpreadWeapon() const
 {
-    auto& mem = Memory::get();
+    if(auto fireSetting = readDataFireSetting())
+    {
+        return mem.readProcess <uint16_t> (*fireSetting + offsets::FireSettings::sSpread);
+    }
 
-    auto fireSetting = mem.readProcess <uintptr_t> (weaponPtr + offsets::Weapon::pFireSettings);
-
-    if(!fireSetting) return std::nullopt;
-
-    return mem.readProcess <uint16_t> (*fireSetting + offsets::FireSettings::sSpread);
+    return false;
 }
 
 bool Weapon::setSpreadWeapon(const int16_t& value)
 {
-    auto& mem = Memory::get();
+    if(value < 0 || value > 100) return false;
 
-    auto fireSetting = mem.readProcess <uintptr_t> (weaponPtr + offsets::Weapon::pFireSettings);
+    if(auto fireSetting = readDataFireSetting())
+    {
+        return mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sSpread, value);
+    }
 
-    if(!fireSetting) return false;
-
-    return mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sSpread, value);
+    return false;
 }
 
 
 std::optional <RecoilInfo> Weapon::getRecoil() const
 {
-    auto& mem = Memory::get();
 
-    auto fireSetting = mem.readProcess <uintptr_t> (weaponPtr + offsets::Weapon::pFireSettings);
-
-    if(!fireSetting) return std::nullopt;
-
-    return RecoilInfo
+    if(auto fireSetting = readDataFireSetting())
     {
-    *mem.readProcess <int16_t> (*fireSetting + offsets::FireSettings::sRecoilBase),
-    *mem.readProcess <int16_t> (*fireSetting + offsets::FireSettings::sRecoilIncrement),
-    *mem.readProcess <int16_t> (*fireSetting + offsets::FireSettings::sMaxRecoil)
-    };
+        auto recBase = mem.readProcess <int16_t> (*fireSetting + offsets::FireSettings::sRecoilBase);
+        auto recInc = mem.readProcess <int16_t> (*fireSetting + offsets::FireSettings::sRecoilIncrement);
+        auto recMax = mem.readProcess <int16_t> (*fireSetting + offsets::FireSettings::sMaxRecoil);
+
+        if(recBase && recInc && recMax) return RecoilInfo { *recBase,*recInc,*recMax };
+    }
+
+    return std::nullopt;
 }
 
 bool Weapon::setRecoil(const int16_t base, const int16_t increment, const int16_t max)
 {
-    auto& mem = Memory::get();
+    if (base < 0 || increment < 0 || max < 0) return false;
+    if (base > 1000 || increment > 1000 || max > 1000) return false;
 
-    auto fireSetting = mem.readProcess <uintptr_t> (weaponPtr + offsets::Weapon::pFireSettings);
-
-    if(!fireSetting) return false;
+    if(auto fireSetting = readDataFireSetting())
+    {
 
     bool baseRecoil = mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sRecoilBase, base);
 
@@ -118,4 +131,8 @@ bool Weapon::setRecoil(const int16_t base, const int16_t increment, const int16_
     bool maxRecoil = mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sMaxRecoil, max);
 
     return baseRecoil && incrementRecoil && maxRecoil;
+
+    }
+
+    return false;
 }
