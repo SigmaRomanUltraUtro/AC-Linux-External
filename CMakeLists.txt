@@ -19,6 +19,16 @@ add_executable(TestExternalAssaultCube main.cpp
     memory/memory.cpp
     sdk/LocalPlayer.cpp
     sdk/weapon.h sdk/weapon.cpp
+    features/norecoil.h features/norecoil.cpp
+    features/spread.h features/spread.cpp
+    features/antiknockback.h features/antiknockback.cpp
+    features/weaponid.h features/weaponid.cpp
+    features/infinityammo.h features/infinityammo.cpp
+    features/rapidfire.h features/rapidfire.cpp
+
+
+
+
 )
 
 include(GNUInstallDirs)

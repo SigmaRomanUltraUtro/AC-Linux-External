@@ -11,15 +11,15 @@ class LocalPlayer
 public:
     LocalPlayer();
 
-    bool update();
+    bool update(uintptr_t baseAddr);
 
     std::optional <int> getHealth() const;
 
-    bool setHealth(const int& value) const;
+    bool setHealth(int value);
 
     std::optional <int> getArrmor() const;
 
-    bool setArrmor(const int& value) const;
+    bool setArrmor(int value);
 
     std::optional <uintptr_t> getWeaponPtr() const;
 

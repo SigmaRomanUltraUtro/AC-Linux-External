@@ -5,6 +5,12 @@
 #include <thread>
 #include <chrono>
 #include "sdk/weapon.h"
+#include "features/norecoil.h"
+#include "features/spread.h"
+#include "features/antiknockback.h"
+#include "features/infinityammo.h"
+#include "features/rapidfire.h"
+
 int showMenu()
 {
     int userInput = 0;
@@ -26,28 +32,6 @@ int showMenu()
 using namespace std;
 int main()
 {
-    ProcessFinder find;
-    ModuleParser parser;
-    auto pid_opt = find.findProcessIdByName("linux_64_client");
-    if(!pid_opt)
-    {
-        std::cout<<"Error get pid process \n";
-        return 0;
-    }
-
-    auto vec_opt = parser.findModuleBase(*pid_opt,"linux_64_client","r--p");
-
-    if(!vec_opt)
-    {
-        std::cerr<<"Error get module \n";
-        return 0;
-    }
-
-    for(const auto module : *vec_opt)
-    {
-        std::cout<<std::hex<<module<<std::endl;
-    }
-
     auto& mem = Memory::get();
     if(!mem.attach("linux_64_client"))
     {
@@ -55,11 +39,25 @@ int main()
         return 0;
     }
 
+    std::cout<<"[+] Attach game \n";
+
+    auto baseAddr = mem.getBaseAddr("linux_64_client");
+
+    if(!baseAddr)
+    {
+        std::cerr<<"Error get module \n";
+        return 0;
+    }
+
+    std::cout<<"[+] Find baseAddr: "<<std::hex<<"0x"<<*baseAddr<<std::endl;
+
     LocalPlayer player;
+
+    uintptr_t lastWeaponAddr = 0;
 
     while (true)
     {
-        if(!player.update())
+        if(!player.update(*baseAddr))
         {
             std::cerr<<"player no upate \n";
             return 0;
@@ -75,11 +73,12 @@ int main()
 
         Weapon weapon(*weaponPtr);
 
-        weapon.setAmmoWeapon(9999);
-        weapon.setSpreadWeapon(0);
-        weapon.setKnockBack(0);
-        weapon.setRecoil(0,0,0);
+        NoRecoil::enableNoRecoil(weapon,true,0,0,0);
+        Spread::enableNoSpread(weapon,true,0);
+        AntiKnockBack::enebleAntiKnockBack(weapon,true,0);
+        InfinityAmmo::enableInfinityAmmo(weapon,true);
+        RapidFire::enableRapidFire(weapon, true);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 }

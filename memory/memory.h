@@ -5,17 +5,13 @@
 #include <sys/uio.h>
 #include <type_traits>
 #include <string>
-#include <type_traits>
 #include "map"
 #include <optional>
 #include <type_traits>
 #include <mutex>
 
-
 template <typename T>
-concept TrivialyCopyable = std::is_trivially_copyable_v <T>;
-
-
+concept TriviallyCopyable = std::is_trivially_copyable_v <T>;
 
 class Memory
 {
@@ -43,7 +39,7 @@ public:
 
     std::optional <uintptr_t> getBaseAddr(const std::string& moduleName);
 
-    template <TrivialyCopyable T>
+    template <TriviallyCopyable T>
     std::optional <T> readProcess(const uintptr_t addr) const
     {
 
@@ -69,7 +65,7 @@ public:
     }
 
 
-    template <TrivialyCopyable T>
+    template <TriviallyCopyable T>
     bool writeProcess(const uintptr_t addr, const T& value) const
     {
 

@@ -4,13 +4,13 @@
 
 LocalPlayer::LocalPlayer() : mem(Memory::get()) {}
 
-bool LocalPlayer::update()
+bool LocalPlayer::update(uintptr_t baseAddr)
 {
-    auto base = mem.getBaseAddr("linux_64_client");
+    if(baseAddr < 0) return false;
 
-    if(base)
+    if(baseAddr)
     {
-        auto pPlayer = mem.readProcess <uintptr_t> (*base + offsets::dLocalPlayer);
+        auto pPlayer = mem.readProcess <uintptr_t> (baseAddr + offsets::dLocalPlayer);
 
         if(pPlayer && *pPlayer != 0)
         {
@@ -36,7 +36,7 @@ std::optional <int> LocalPlayer::getHealth() const
     return mem.readProcess <int> (localPlayerAddr + offsets::mPlayer::iHealth);
 }
 
-bool LocalPlayer::setHealth(const int& value) const
+bool LocalPlayer::setHealth(int value)
 {
     if(localPlayerAddr == 0 || value <= 0) return false;
 
@@ -44,7 +44,7 @@ bool LocalPlayer::setHealth(const int& value) const
 }
 
 
-bool LocalPlayer::setArrmor(const int& value) const
+bool LocalPlayer::setArrmor(int value)
 {
     if(localPlayerAddr == 0 || value <= 0) return false;
 
