@@ -1,15 +1,54 @@
 #include "antiknockback.h"
+#include <algorithm>
 
-bool AntiKnockBack::enebleAntiKnockBack(Weapon& weapon,bool enable, int16_t knockBackValue)
+AntiKnockBack::AntiKnockBack(int16_t valueKnock) : modifiedKnockValue(valueKnock){}
+
+bool AntiKnockBack::update(LocalPlayer& lPlayer, Weapon& weapon)
 {
-    if(enable)
+    auto wpPtr = lPlayer.getWeaponPtr();
+
+    if(!wpPtr) return false;
+
+    auto [it, insert] = historyKnock.try_emplace(*wpPtr, 0);
+
+    if(insert)
     {
-        weapon.saveStatsWeapon();
-        return weapon.setKnockBack(knockBackValue);
+        auto value = weapon.getKnockBack();
+
+        if(!value)
+        {
+            historyKnock.erase(*wpPtr);
+            return false;
+        }
+
+        it->second = *value;
     }
-    else
+
+    weapon.setKnockBack(modifiedKnockValue);
+
+    return true;
+}
+
+bool AntiKnockBack::disable(LocalPlayer& lPlayer)
+{
+    for(const auto& [wpPtr, value] : historyKnock)
     {
-        return weapon.restoreWeapon();
+        Weapon currentWeapon(wpPtr);
+
+        currentWeapon.setKnockBack(value);
     }
-    return false;
+    historyKnock.clear();
+    return true;
+}
+
+void AntiKnockBack::cfgUpdate(const Setting& config)
+{
+    modifiedKnockValue = config.Knock.Knockvalue;
+}
+
+void AntiKnockBack::setKnockValue(int16_t knockValue)
+{
+    modifiedKnockValue = std::clamp(knockValue, (int16_t)0, (int16_t)500);
+
+    modifiedKnockValue = knockValue;
 }

@@ -17,12 +17,13 @@ struct MemoryMap
 class ProcessSource
 {
 public:
+    static bool isRoot();
 
-    std::vector<pid_t> enumerateProcessIds() const;
+    std::optional <std::vector<pid_t>> enumerateProcessIds() const;
 
     bool isValidProcessEntry(pid_t pid) const;
 
-    std::string readProcessName(pid_t pid) const;
+    std::optional <std::string> readProcessName(pid_t pid) const;
 
     std::string readProcessCmdline(pid_t pid) const;
 

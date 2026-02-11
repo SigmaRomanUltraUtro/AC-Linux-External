@@ -30,7 +30,7 @@ constexpr uintptr_t pGunStats = 0x30;
 namespace FireSettings
 {
 constexpr uintptr_t sKnockBack = 0x54;
-constexpr uintptr_t sSpread = 0x52;
+constexpr uintptr_t sSpread = 0x38;
 constexpr uintptr_t sRecoilBase = 0x5C;
 constexpr uintptr_t sRecoilIncrement = 0x5E;
 constexpr uintptr_t sMaxRecoil = 0x60;

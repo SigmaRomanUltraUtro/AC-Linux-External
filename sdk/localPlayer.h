@@ -1,6 +1,5 @@
 #ifndef LOCALPLAYER_H
 #define LOCALPLAYER_H
-
 #include <sys/types.h>
 #include <optional>
 #include <cstdint>
@@ -17,9 +16,9 @@ public:
 
     bool setHealth(int value);
 
-    std::optional <int> getArrmor() const;
+    std::optional <int> getArmor() const;
 
-    bool setArrmor(int value);
+    bool setArmor(int value);
 
     std::optional <uintptr_t> getWeaponPtr() const;
 

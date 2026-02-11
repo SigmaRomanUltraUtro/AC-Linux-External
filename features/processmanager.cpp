@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <ranges>
 #include <iostream>
+#include <unistd.h>
+
 ProcessFinder::ProcessFinder(ProcessSource source ) : procSource(std::move(source)){}
 
 
@@ -14,7 +16,7 @@ bool isPidDirName(const std::string& name)
     return !name.empty() && std::ranges::all_of(name, [](unsigned char s){ return std::isdigit(s); });
 }
 
-std::vector<pid_t> ProcessSource::enumerateProcessIds() const
+std::optional <std::vector<pid_t>> ProcessSource::enumerateProcessIds() const
 {
     std::vector <pid_t> pids;
 
@@ -39,23 +41,20 @@ std::vector<pid_t> ProcessSource::enumerateProcessIds() const
     return pids;
 }
 
-std::string ProcessSource::readProcessName(pid_t pid) const
+std::optional <std::string> ProcessSource::readProcessName(pid_t pid) const
 {
-    if(pid <= 0)
-    {
-        return {};
-    }
+    if(pid <= 0) return std::nullopt;
 
     std::filesystem::path commPath   = std::filesystem::path("/proc") / std::to_string(pid) / "comm";
 
     std::ifstream commFile(commPath);
-    if(!commFile.is_open()) return {};
+    if(!commFile.is_open()) return std::nullopt;
 
     std::string nameProcess;
 
     std::getline(commFile,nameProcess);
 
-    if(nameProcess.empty()) return {};
+    if(nameProcess.empty()) return std::nullopt;
 
     return nameProcess;
 }
@@ -67,16 +66,20 @@ std::optional<pid_t> ProcessFinder::findProcessIdByName(const std::string& name)
 
     auto pids = procSource.enumerateProcessIds();
 
-    for(auto& pid : pids)
-    {
-        std::string nameProcess = procSource.readProcessName(pid);
+    if(!pids) return std::nullopt;
 
-        if(!nameProcess.empty() && name == nameProcess)
+    for(auto& pid : *pids)
+    {
+        auto nameProcess = procSource.readProcessName(pid);
+
+        if(!nameProcess) continue;
+
+        if(!nameProcess->empty() && name == nameProcess)
         {
             return pid;
         }
     }
-    return {};
+    return std::nullopt;
 }
 
 
@@ -172,3 +175,8 @@ std::optional <std::vector<uintptr_t>> ModuleParser::findModuleBase(pid_t pidPro
     return baseModules;
 }
 
+
+bool ProcessSource::isRoot()
+{
+    return getuid() == 0;
+}

@@ -25,10 +25,11 @@ add_executable(TestExternalAssaultCube main.cpp
     features/weaponid.h features/weaponid.cpp
     features/infinityammo.h features/infinityammo.cpp
     features/rapidfire.h features/rapidfire.cpp
-
-
-
-
+    features/godmode.h features/godmode.cpp
+    features/infinityarmor.h features/infinityarmor.cpp
+    kernel.h kernel.cpp
+    features/modifier.h
+    SettingFunction.h
 )
 
 include(GNUInstallDirs)

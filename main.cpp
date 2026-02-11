@@ -1,84 +1,127 @@
 #include <iostream>
-#include "features/processmanager.h"
-#include "sdk/localPlayer.h"
 #include "memory/memory.h"
-#include <thread>
-#include <chrono>
-#include "sdk/weapon.h"
-#include "features/norecoil.h"
-#include "features/spread.h"
-#include "features/antiknockback.h"
-#include "features/infinityammo.h"
-#include "features/rapidfire.h"
+#include "kernel.h"
+#include "features/processmanager.h"
+#include "SettingFunction.h"
 
-int showMenu()
+bool bGodMode = false;
+bool bInfinityAmmo = false;
+bool bInfinityArmor = false;
+bool bAntiKnockback = false;
+
+bool bNoRecoil = false;
+bool bNoSpread = false;
+bool bRapidFire = false;
+
+void draw()
 {
-    int userInput = 0;
-    std::cout << "\n--- ASSAULT CUBE CHEAT MENU ---\n";
-    std::cout << "1.  Set Health          (Установить здоровье)\n";
-    std::cout << "2.  Set Armor           (Установить броню)\n";
-    std::cout << "3.  Set Weapon ID       (Сменить ID оружия)\n";
-    std::cout << "4.  Set Ammo            (Установить патроны)\n";
-    std::cout << "5.  Set Knockback       (Установить отброс)\n";
-    std::cout << "6.  Set Spread          (Установить разброс)\n";
-    std::cout << "7.  Set Custom Recoil   (Настроить отдачу)\n";
-    std::cout << "0.  Exit                (Выход)\n";
-    std::cout << "-------------------------------\n";
-    std::cout << "Select option: ";
-    std::cin>>userInput;
-    return userInput;
+std::cout << "========= CONTROL PANEL =========\n"
+              << " 1. GodMode       " << (bGodMode ? "[ON]" : "[OFF]") << "\n"
+              << " 2. InfinityAmmo  " << (bInfinityAmmo ? "[ON]" : "[OFF]") << "\n"
+              << " 3. InfinityArmor " << (bInfinityArmor ? "[ON]" : "[OFF]") << "\n"
+              << "---------------------------\n"
+              << " 4. AntiKnock ON\n"
+              << " 5. AntiKnock OFF\n"
+              << "---------------------------\n"
+              << " 6. NoRecoil ON\n"
+              << " 7. NoRecoil OFF\n"
+              << "---------------------------\n"
+              << " 8. NoSpread ON\n"
+              << " 9. NoSpread OFF\n"
+              << "---------------------------\n"
+              << " 10. RapidFire ON\n"
+              << " 11. RapidFire OFF\n"
+              << "===========================\n"
+              << " Choice: ";
 }
-
-using namespace std;
 int main()
 {
+    std::string nameGame = "linux_64_client";
+
+    if (!ProcessSource::isRoot())
+    {
+        std::cerr << "[-] Run is root \n";
+        return 0;
+    }
+
+    std::cout << "[+] starting \n";
+
     auto& mem = Memory::get();
-    if(!mem.attach("linux_64_client"))
+    if (!mem.attach(nameGame))
     {
-        std::cerr<<"[-] Error attach game! \n";
+        std::cerr << "[-] Error attach game \n";
         return 0;
     }
 
-    std::cout<<"[+] Attach game \n";
+    std::cout << "[+] suceffuly attach game \n";
 
-    auto baseAddr = mem.getBaseAddr("linux_64_client");
+    auto baseAddr = mem.getBaseAddr(nameGame);
 
-    if(!baseAddr)
+    if (!baseAddr)
     {
-        std::cerr<<"Error get module \n";
+        std::cerr << "[-] BaseAddr not found \n";
         return 0;
     }
 
-    std::cout<<"[+] Find baseAddr: "<<std::hex<<"0x"<<*baseAddr<<std::endl;
+    std::cout << "base addr found \n";
 
-    LocalPlayer player;
+    Kernel kernel(*baseAddr);
 
-    uintptr_t lastWeaponAddr = 0;
+    kernel.start();
 
-    while (true)
+    
+    int userInput = 0;
+    do
     {
-        if(!player.update(*baseAddr))
-        {
-            std::cerr<<"player no upate \n";
-            return 0;
+        draw();
+        std::cin >> userInput;
+        switch (userInput) {
+            case 1: kernel.toggleFunc("godMode", true); break;
+            case 2: kernel.toggleFunc("infinityAmmo", true); break;
+            case 3: kernel.toggleFunc("infinityArmor", true); break;
+            case 4: 
+            {
+                int16_t knockValue = 0;
+                std::cout << "Enter knock value \n";
+                std::cin >> knockValue;
+                Setting::get().Knock.Knockvalue = knockValue;
+                kernel.toggleFunc("antiKnockBack", true);
+                break;
+            }
+            case 5:kernel.toggleFunc("antiKnockBack", false); break;
+            case 6: 
+            {
+                int16_t base, inc, max;
+                std::cout << "Enter recoil value base inc max \n";
+                std::cin >> base >> inc >> max;
+                Setting::get().Recoil.recoilBase = base;
+                Setting::get().Recoil.recoilInc = inc;
+                Setting::get().Recoil.recoilMax = max;
+                kernel.toggleFunc("noRecoil", true); 
+                break;
+            }
+            case 7: kernel.toggleFunc("noRecoil", false); break;
+            case 8: 
+            {
+                int16_t spreadValue = 0;
+                std::cout << "Enter spread value \n";
+                std::cin >> spreadValue;
+                Setting::get().Spread.Spreadvalue = spreadValue;
+                kernel.toggleFunc("antiSpread", true);
+            }
+            case 9: kernel.toggleFunc("antiSpread", false); break;
+            case 10: 
+            {
+                int delayValue = 0;
+                std::cout << "Enter delay value \n";
+                std::cin >> delayValue;
+                Setting::get().Delay.delayValue = delayValue;
+                kernel.toggleFunc("rapidFire", true);
+                break;
+            }
+            case 11: kernel.toggleFunc("rapidFire", false); break;
         }
+    } while (userInput != 0);
 
-        auto weaponPtr = player.getWeaponPtr();
-
-        if(!weaponPtr)
-        {
-            std::cerr<<"Error get weapon ptr \n";
-            return 0;
-        }
-
-        Weapon weapon(*weaponPtr);
-
-        NoRecoil::enableNoRecoil(weapon,true,0,0,0);
-        Spread::enableNoSpread(weapon,true,0);
-        AntiKnockBack::enebleAntiKnockBack(weapon,true,0);
-        InfinityAmmo::enableInfinityAmmo(weapon,true);
-        RapidFire::enableRapidFire(weapon, true);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
-    }
+    kernel.stop();
 }

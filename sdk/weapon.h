@@ -3,24 +3,18 @@
 #include <cstdint>
 #include <optional>
 #include "../memory/memory.h"
-#include <map>
 
 struct RecoilInfo
 {
     int16_t base;
-    int16_t increment;
+    int16_t inc;
     int16_t max;
-};
 
-struct WeaponState
-{
-    int16_t spread;
-    int ammo;
-    int16_t knockback;
-    RecoilInfo recoil;
+    bool isValid() const
+    {
+        return base >= 0 && inc >= 0 && max >= 0 &&base <= 1000 && inc <= 1000 && max <= 1000;
+    }
 };
-
-static std::map <uintptr_t, WeaponState> historyStatsWeapon;
 
 class Weapon
 {
@@ -36,10 +30,6 @@ private:
     std::optional <uintptr_t> readPtrGunStats() const;
 
 public:
-
-    bool saveStatsWeapon();
-
-    bool restoreWeapon();
 
     Weapon(const uintptr_t weaponPtr);
 
@@ -61,7 +51,7 @@ public:
 
     std::optional <RecoilInfo> getRecoil() const;
 
-    bool setRecoil(const int16_t base, const int16_t increment, const int16_t max);
+    bool setRecoil(const RecoilInfo& recoil);
 
     std::optional <int> getAttackDelay() const;
 

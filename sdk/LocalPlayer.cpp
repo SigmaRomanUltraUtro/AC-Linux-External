@@ -43,15 +43,14 @@ bool LocalPlayer::setHealth(int value)
     return mem.writeProcess <int> (localPlayerAddr + offsets::mPlayer::iHealth, value);
 }
 
-
-bool LocalPlayer::setArrmor(int value)
+bool LocalPlayer::setArmor(int value)
 {
     if(localPlayerAddr == 0 || value <= 0) return false;
 
     return mem.writeProcess <int> (localPlayerAddr + offsets::mPlayer::iArmor, value);
 }
 
-std::optional <int> LocalPlayer::getArrmor() const
+std::optional <int> LocalPlayer::getArmor() const
 {
     if(localPlayerAddr == 0) return std::nullopt;
 

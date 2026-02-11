@@ -1,15 +1,58 @@
 #include "norecoil.h"
+#include "../kernel.h"
 
-bool NoRecoil::enableNoRecoil(Weapon& weapon, bool enable, int16_t base, const int16_t increment, const int16_t max)
+NoRecoil::NoRecoil() : modifiedRecoil{0,0,0} {}
+
+bool NoRecoil::update(LocalPlayer& lPlayer, Weapon& weapon)
 {
-    if(enable)
+    auto wpPtr = lPlayer.getWeaponPtr();
+
+    if(!wpPtr) return false;
+
+    auto [it, insert] = historyRecoilWeapon.try_emplace(*wpPtr, RecoilInfo {});
+
+    if(insert)
     {
-        weapon.saveStatsWeapon();
-        return weapon.setRecoil(base,increment,max);
+        auto value = weapon.getRecoil();
+
+        if(!value)
+        {
+            historyRecoilWeapon.erase(*wpPtr);
+            return false;
+        }
+
+        it->second = *value;
     }
-    else
+
+    weapon.setRecoil(modifiedRecoil);
+
+    return true;
+}
+
+bool NoRecoil::disable(LocalPlayer& lPlayer)
+{
+    for(const auto& [wpPtr, value] : historyRecoilWeapon)
     {
-        return weapon.restoreWeapon();
+        Weapon currentWeapon(wpPtr);
+
+        currentWeapon.setRecoil(value);
     }
-    return false;
+    historyRecoilWeapon.clear();
+    return true;
+}
+
+void NoRecoil::cfgUpdate(const Setting& config)
+{
+    modifiedRecoil.base = config.Recoil.recoilBase;
+    modifiedRecoil.inc = config.Recoil.recoilInc;
+    modifiedRecoil.max = config.Recoil.recoilMax;
+}
+
+bool NoRecoil::setRecoil(const RecoilInfo& recoil)
+{
+    if(!recoil.isValid()) return false;
+
+    modifiedRecoil = recoil;
+
+    return true;
 }

@@ -79,7 +79,7 @@ bool Weapon::setKnockBack(const int16_t& value)
 
     if(auto fireSetting = readPtrFireSetting())
     {
-        return mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sKnockBack, value);
+        return mem.writeProcess <int16_t> (*fireSetting + offsets::FireSettings::sKnockBack, value);
     }
 
     return false;
@@ -89,7 +89,7 @@ std::optional <int16_t> Weapon::getSpreadWeapon() const
 {
     if(auto fireSetting = readPtrFireSetting())
     {
-        return mem.readProcess <uint16_t> (*fireSetting + offsets::FireSettings::sSpread);
+        return mem.readProcess <int16_t> (*fireSetting + offsets::FireSettings::sSpread);
     }
 
     return std::nullopt;
@@ -101,7 +101,7 @@ bool Weapon::setSpreadWeapon(const int16_t& value)
 
     if(auto fireSetting = readPtrFireSetting())
     {
-        return mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sSpread, value);
+        return mem.writeProcess <int16_t> (*fireSetting + offsets::FireSettings::sSpread, value);
     }
 
     return false;
@@ -123,19 +123,18 @@ std::optional <RecoilInfo> Weapon::getRecoil() const
     return std::nullopt;
 }
 
-bool Weapon::setRecoil(const int16_t base, const int16_t increment, const int16_t max)
+bool Weapon::setRecoil(const RecoilInfo& recoil)
 {
-    if (base < 0 || increment < 0 || max < 0) return false;
-    if (base > 1000 || increment > 1000 || max > 1000) return false;
+    if(!recoil.isValid()) return false;
 
     if(auto fireSetting = readPtrFireSetting())
     {
 
-    bool baseRecoil = mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sRecoilBase, base);
+    bool baseRecoil = mem.writeProcess <int16_t> (*fireSetting + offsets::FireSettings::sRecoilBase, recoil.base);
 
-    bool incrementRecoil = mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sRecoilIncrement, increment);
+    bool incrementRecoil = mem.writeProcess <int16_t> (*fireSetting + offsets::FireSettings::sRecoilIncrement,recoil.inc);
 
-    bool maxRecoil = mem.writeProcess <uint16_t> (*fireSetting + offsets::FireSettings::sMaxRecoil, max);
+    bool maxRecoil = mem.writeProcess <int16_t> (*fireSetting + offsets::FireSettings::sMaxRecoil,recoil.max);
 
     return baseRecoil && incrementRecoil && maxRecoil;
 
@@ -145,51 +144,6 @@ bool Weapon::setRecoil(const int16_t base, const int16_t increment, const int16_
 }
 
 
-bool Weapon::saveStatsWeapon()
-{
-    if(weaponPtr == 0) return false;
-
-    if(historyStatsWeapon.find(weaponPtr) != historyStatsWeapon.end()) return false;
-
-    auto ammo = getAmmoWeapon();
-
-    auto spread = getSpreadWeapon();
-
-    auto knockback = getKnockBack();
-
-    auto sRecoil = getRecoil();
-
-    if(ammo && spread && knockback && sRecoil)
-    {
-        WeaponState state;
-        state.ammo = *ammo;
-        state.recoil = *sRecoil;
-        state.knockback = *knockback;
-        state.spread = *spread;
-
-        historyStatsWeapon[weaponPtr] = state;
-        return true;
-    }
-    return false;
-}
-
-bool Weapon::restoreWeapon()
-{
-    if(auto it = historyStatsWeapon.find(weaponPtr); it != historyStatsWeapon.end())
-    {
-        WeaponState& state = it->second;
-
-        setAmmoWeapon(state.ammo);
-        setSpreadWeapon(state.spread);
-        setKnockBack(state.knockback);
-        setRecoil(state.recoil.base,state.recoil.increment,state.recoil.max);
-
-        historyStatsWeapon.erase(it);
-        return true;
-    }
-    return false;
-}
-
 
 std::optional <int> Weapon::getAttackDelay() const
 {
@@ -198,7 +152,7 @@ std::optional <int> Weapon::getAttackDelay() const
         return mem.readProcess <int> (*gunStats + offsets::GunStats::iAttackDelay);
     }
 
-    return false;
+    return std::nullopt;
 }
 
 bool Weapon::setAttackDelay(int attackDelay)

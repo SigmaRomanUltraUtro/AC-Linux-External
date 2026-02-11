@@ -1,11 +1,21 @@
 #ifndef NORECOIL_H
 #define NORECOIL_H
 #include "../sdk/weapon.h"
+#include "../features/modifier.h"
+#include <map>
 
-class NoRecoil
+class NoRecoil : public Modifier
 {
+
+private:
+    RecoilInfo modifiedRecoil;
+    std::map<uintptr_t, RecoilInfo> historyRecoilWeapon;
 public:
-    static bool enableNoRecoil(Weapon& weapon, bool enable, int16_t base, const int16_t increment, const int16_t max);
+    NoRecoil();
+    bool update(LocalPlayer& lPlayer, Weapon& weapon) override;
+    bool disable(LocalPlayer& lPlayer) override;
+    void cfgUpdate(const Setting& config) override;
+    bool setRecoil(const RecoilInfo& recoil);
 };
 
 #endif // NORECOIL_H
