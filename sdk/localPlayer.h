@@ -1,39 +1,22 @@
 #ifndef LOCALPLAYER_H
 #define LOCALPLAYER_H
 #include <sys/types.h>
-#include <optional>
-#include <cstdint>
-#include "../memory/memory.h"
+#include "Entity.h"
 
-class LocalPlayer
+class LocalPlayer : public Entity
 {
 public:
-    LocalPlayer();
+ LocalPlayer(uintptr_t baseAddr);
 
-    bool update(uintptr_t baseAddr);
+ std::optional<float> getPitch() const;
 
-    std::optional<float> getPitch() const;
+ bool setPitch(float degreesValue);
 
-    bool setPitch(float degreesValue);
+ std::optional<float> getYaw() const;
 
-    std::optional<float> getYaw() const;
+ bool setYaw(float deareesValue);
 
-    bool setYaw(float deareesValue);
-
-    std::optional <int> getHealth() const;
-
-    bool setHealth(int value);
-
-    std::optional <int> getArmor() const;
-
-    bool setArmor(int value);
-
-    std::optional <uintptr_t> getWeaponPtr() const;
-
-private:
-
-    Memory& mem;
-    uintptr_t localPlayerAddr;
+ std::optional<uintptr_t> getWeaponPtr() const;
 };
 
 #endif // LOCALPLAYER_H

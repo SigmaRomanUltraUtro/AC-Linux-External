@@ -30,6 +30,7 @@ add_executable(TestExternalAssaultCube main.cpp
     kernel.h kernel.cpp
     features/modifier.h
     SettingFunction.h
+    sdk/Entity.h sdk/Entity.cpp
 )
 
 include(GNUInstallDirs)

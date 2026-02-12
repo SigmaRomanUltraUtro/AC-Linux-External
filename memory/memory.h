@@ -9,6 +9,7 @@
 #include <optional>
 #include <type_traits>
 #include <mutex>
+#include <atomic>
 
 template <typename T>
 concept TriviallyCopyable = std::is_trivially_copyable_v <T>;
@@ -16,14 +17,17 @@ concept TriviallyCopyable = std::is_trivially_copyable_v <T>;
 class Memory
 {
 private:
+ uintptr_t baseAddr = 0;
 
-    std::map<std::string, uintptr_t> moduleCache {};
+ std::atomic<uintptr_t> clientCache{0};
 
-    std::optional<pid_t> pid_opt;
+ std::map<std::string, uintptr_t> moduleCache{};
 
-    mutable std::mutex cacheMutex;
+ std::optional<pid_t> pid_opt;
 
-    Memory() = default;
+ mutable std::mutex cacheMutex;
+
+ Memory() = default;
 
 public:
 
@@ -39,6 +43,8 @@ public:
     bool attach(const std::string& nameProcess);
 
     std::optional <pid_t> getPid() const { return *pid_opt; }
+
+    std::optional<uintptr_t> getClientBase();
 
     std::optional <uintptr_t> getBaseAddr(const std::string& moduleName);
 

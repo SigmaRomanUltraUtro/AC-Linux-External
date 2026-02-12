@@ -76,9 +76,18 @@ int main()
         draw();
         std::cin >> userInput;
         switch (userInput) {
-            case 1: kernel.toggleFunc("godMode", true); break;
-            case 2: kernel.toggleFunc("infinityAmmo", true); break;
-            case 3: kernel.toggleFunc("infinityArmor", true); break;
+            case 1: 
+                bGodMode = !bGodMode;
+                kernel.toggleFunc("godMode", !bGodMode);
+                break;
+            case 2:
+                bInfinityAmmo = !bInfinityAmmo;
+                kernel.toggleFunc("infinityAmmo", !bInfinityAmmo);
+                break;
+            case 3:
+                bInfinityArmor = !bInfinityArmor;
+                kernel.toggleFunc("infinityArmor", !bInfinityArmor);
+                break;
             case 4: 
             {
                 int16_t knockValue = 0;

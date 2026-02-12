@@ -8,13 +8,17 @@
 #include <memory>
 #include <string>
 #include "SettingFunction.h"
+#include "memory.h"
 
 class Kernel
 {
 private:
+
     LocalPlayer player;
 
     uintptr_t baseAddr;
+
+    Memory& mem;
 
     std::thread worker;
 
@@ -25,7 +29,9 @@ private:
     std::map <std::string, bool> activityFlags;
 
 private:
-    void updateLoop();
+ std::optional<uintptr_t> playerPtrUpdate();
+
+ void updateLoop();
 
 public:
 

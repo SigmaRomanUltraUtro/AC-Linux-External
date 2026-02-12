@@ -7,8 +7,9 @@
 #include "features/infinityarmor.h"
 #include "features/rapidfire.h"
 #include "features/spread.h"
+#include "Offsets.h"
 
-Kernel::Kernel(uintptr_t baseAddr) : baseAddr(baseAddr)
+Kernel::Kernel(uintptr_t baseAddr) : player(0), baseAddr(baseAddr), mem(Memory::get())
 {
     allFunc["noRecoil"] = std::make_unique<NoRecoil>();
     allFunc["antiKnockBack"] = std::make_unique<AntiKnockBack>(0);
@@ -41,16 +42,17 @@ void Kernel::stop()
 
 void Kernel::updateLoop()
 {
-    LocalPlayer player;
-
     while(isRunning)
     {
-        if(!player.update(baseAddr))
+        auto playerPtr = playerPtrUpdate();
+
+        if(!playerPtr)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
 
+        player.updateBaseAddr(*playerPtr);
 
         auto weaponPtr = player.getWeaponPtr();
 
@@ -84,3 +86,7 @@ void Kernel::toggleFunc(std::string name, bool enable)
     activityFlags[name] = enable;
 }
 
+std::optional<uintptr_t> Kernel::playerPtrUpdate()
+{
+    return mem.readProcess<uintptr_t>(baseAddr + offsets::dLocalPlayer);
+}

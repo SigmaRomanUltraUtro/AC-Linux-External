@@ -18,7 +18,8 @@ bool Memory::attach(const std::string& processName)
 
 std::optional<uintptr_t> Memory::getBaseAddr(const std::string& module)
 {
-    if (!pid_opt) return std::nullopt;
+    if (!pid_opt)
+        return std::nullopt;
     {
         std::scoped_lock lock(cacheMutex);
         if (auto it = moduleCache.find(module); it != moduleCache.end()) return it->second;
@@ -35,4 +36,18 @@ std::optional<uintptr_t> Memory::getBaseAddr(const std::string& module)
     }
 
     return base;
+}
+
+std::optional<uintptr_t> Memory::getClientBase()
+{
+    uintptr_t addr = clientCache.load(std::memory_order_relaxed);
+    if(addr != 0)
+        return addr;
+
+    auto base = getBaseAddr("linux_64_client");
+    if(!base)
+        return std::nullopt;
+
+    clientCache.store(*base, std::memory_order_relaxed);
+    return *base;
 }
