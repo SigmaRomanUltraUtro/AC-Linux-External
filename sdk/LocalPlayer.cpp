@@ -6,7 +6,7 @@ LocalPlayer::LocalPlayer() : mem(Memory::get()) {}
 
 bool LocalPlayer::update(uintptr_t baseAddr)
 {
-    if(baseAddr < 0) return false;
+    if(baseAddr == 0) return false;
 
     if(baseAddr)
     {
@@ -57,3 +57,34 @@ std::optional <int> LocalPlayer::getArmor() const
     return mem.readProcess <int> (localPlayerAddr + offsets::mPlayer::iArmor);
 }
 
+std::optional<float>LocalPlayer::getPitch() const
+{
+    if(localPlayerAddr == 0)
+        return std::nullopt;
+
+    return mem.readProcess<float>(localPlayerAddr + offsets::mPlayer::fPitch);
+}
+
+bool LocalPlayer::setPitch(float degreesValue)
+{
+    if(localPlayerAddr == 0 || degreesValue > 89.0f || degreesValue < -89.0f)
+        return false;
+
+    return mem.writeProcess<float>(localPlayerAddr + offsets::mPlayer::fPitch, degreesValue);
+}
+
+std::optional<float>LocalPlayer::getYaw() const
+{
+    if(localPlayerAddr == 0)
+        return std::nullopt;
+
+    return mem.readProcess<float>(localPlayerAddr + offsets::mPlayer::fYaw);
+}
+
+bool LocalPlayer::setYaw(float degreesValue)
+{
+    if(localPlayerAddr == 0)
+        return false;
+
+    return mem.writeProcess<float>(localPlayerAddr + offsets::mPlayer::fYaw, degreesValue);
+}

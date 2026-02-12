@@ -12,6 +12,14 @@ public:
 
     bool update(uintptr_t baseAddr);
 
+    std::optional<float> getPitch() const;
+
+    bool setPitch(float degreesValue);
+
+    std::optional<float> getYaw() const;
+
+    bool setYaw(float deareesValue);
+
     std::optional <int> getHealth() const;
 
     bool setHealth(int value);

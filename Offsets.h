@@ -13,6 +13,8 @@ constexpr uintptr_t iHealth = 0x100;
 constexpr uintptr_t iArmor = 0x104;
 constexpr uintptr_t pCurrentWeapon = 0x3a0;
 constexpr uintptr_t pStatsArray = 0x184;
+constexpr uintptr_t fPitch = 0x38;
+constexpr uintptr_t fYaw = 0x3c;
 
 }
 
