@@ -40,3 +40,42 @@ bool Entity::updateBaseAddr(uintptr_t baseAddr)
     }
     return false;
 }
+
+std::optional<Position> Entity::getPosition()
+{
+    if(baseAddr != 0)
+    {
+        auto posX_opt = mem.readProcess<float>(baseAddr + offsets::players::fPosX);
+        auto posY_opt = mem.readProcess<float>(baseAddr + offsets::players::fPosY);
+        auto posZ_opt = mem.readProcess<float>(baseAddr + offsets::players::fPosZ);
+
+        if(posX_opt && posY_opt && posZ_opt)
+            return Position{*posX_opt, *posY_opt, *posZ_opt};
+    }
+    return std::nullopt;
+}
+
+bool Entity::setPosition(const Position& pos)
+{
+    if(!pos.isValid() || baseAddr == 0)
+        return false;
+
+    auto posX_opt = mem.writeProcess<float>(baseAddr + offsets::players::fPosX, pos.fPosX);
+    auto posY_opt = mem.writeProcess<float>(baseAddr + offsets::players::fPosX, pos.fPosY);
+    auto posZ_opt = mem.writeProcess<float>(baseAddr + offsets::players::fPosX, pos.fPosZ);
+
+    return posX_opt && posY_opt && posZ_opt;
+}
+
+bool Entity::getInfoDead() const
+{
+    if(baseAddr == 0)
+        return false;
+
+    auto infoDead_opt = mem.readProcess<int>(baseAddr + offsets::players::iDead);
+
+    if(infoDead_opt)
+        return *infoDead_opt == 1;
+
+    return false;
+}

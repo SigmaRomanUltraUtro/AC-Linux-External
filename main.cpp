@@ -3,6 +3,11 @@
 #include "kernel.h"
 #include "features/processmanager.h"
 #include "SettingFunction.h"
+#include "sdk/localPlayer.h" // delete
+#include "Offsets.h" // delete
+#include "sdk/Entity.h"
+
+
 
 bool bGodMode = false;
 bool bInfinityAmmo = false;
@@ -32,6 +37,15 @@ std::cout << "========= CONTROL PANEL =========\n"
               << " 10. RapidFire ON\n"
               << " 11. RapidFire OFF\n"
               << "===========================\n"
+              << "          DEBUG            \n"
+              << "===========================\n"
+              << " 12. getPos \n"
+              << " 13. setPos \n"
+              << " 14. setYawDegrees \n"
+              << " 15. setPitchDegrees \n"
+              << " 16. getYawDegrees \n"
+              << " 17. getPitchDegrees \n"
+              << " 18. getAliveMyPlayers \n"
               << " Choice: ";
 }
 int main()
@@ -69,7 +83,10 @@ int main()
 
     kernel.start();
 
-    
+
+    auto base = mem.readProcess<uintptr_t>(*baseAddr + offsets::dLocalPlayer);
+    LocalPlayer player(*base);
+
     int userInput = 0;
     do
     {
@@ -129,6 +146,66 @@ int main()
                 break;
             }
             case 11: kernel.toggleFunc("rapidFire", false); break;
+            case 12:
+            {
+                auto pos = player.getPosition();
+                if(pos)
+                {
+                    std::cout << "coordinate X = " << pos->fPosX << std::endl;
+                    std::cout << "coordinate Y = " << pos->fPosY << std::endl;
+                    std::cout << "coordinate Z = " << pos->fPosZ << std::endl;
+                }
+                break;
+            }
+            case 13:
+            {
+                float X, Y, Z;
+                std::cout << "Enter value X Y Z \n";
+                std::cin >> X >> Y >> Z;
+                player.setPosition({X, Y, Z});
+                break;
+            }
+            case 14:
+            {
+                float Yaw;
+                std::cout << "Enter Value Yaw \n";
+                std::cin >> Yaw;
+
+                player.setYaw(Yaw);
+                break;
+            }
+            case 15:
+            {
+                float Pitch;
+                std::cout << "Enter value Pitch \n";
+                std::cin >> Pitch;
+                player.setPitch(Pitch);
+                break;
+            }
+            case 16:
+            {
+                auto Yaw = player.getYaw();
+                if(Yaw)
+                {
+                    std::cout << "Yaw degrees: " << *Yaw << std::endl;
+                }
+                break;
+            }
+            case 17:
+            {
+                auto Pitch = player.getPitch();
+                if(Pitch)
+                {
+                    std::cout << "pitch degrees: " << *Pitch << std::endl;
+                }
+                break;
+            }
+            case 18:
+            {
+                auto alive = player.getInfoDead();
+                    std::cout << "Player: " << alive << std::endl;
+                break;
+            }
         }
     } while (userInput != 0);
 

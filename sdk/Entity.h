@@ -4,6 +4,18 @@
 #include <cstdint>
 #include "../memory/memory.h"
 
+struct Position
+{
+    float fPosX = 0;
+    float fPosY = 0;
+    float fPosZ = 0;
+
+    bool isValid() const
+    {
+        return fPosX > 0 && fPosY > 0 && fPosZ > 0;
+    }
+};
+
 class Entity
 {
 protected:
@@ -22,4 +34,10 @@ public:
  std::optional<int> getArmor() const;
 
  bool setArmor(int value);
+
+ std::optional<Position> getPosition();
+
+ bool setPosition(const Position& pos);
+
+ bool getInfoDead() const;
 };
